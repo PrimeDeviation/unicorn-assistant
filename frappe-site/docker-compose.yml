@@ -1,0 +1,37 @@
+version: '3'
+
+services:
+  mariadb:
+    image: mariadb:10.3
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_USER=frappe
+      - MYSQL_PASSWORD=frappe
+    volumes:
+      - mariadb-vol:/var/lib/mysql
+    networks:
+      - frappe-network
+
+  frappe:
+    build: .
+    ports:
+      - "8000:8000"
+    depends_on:
+      - mariadb
+    environment:
+      - DB_ROOT_USER=root
+      - DB_ROOT_PASSWORD=root
+      - ADMIN_PASSWORD=admin
+      - SITE_NAME=frappe.localhost
+    volumes:
+      - frappe-vol:/home/frappe/frappe-bench/sites
+    networks:
+      - frappe-network
+
+networks:
+  frappe-network:
+    driver: bridge
+
+volumes:
+  mariadb-vol:
+  frappe-vol:
