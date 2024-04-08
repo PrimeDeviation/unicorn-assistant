@@ -1,0 +1,51 @@
+version: '3'
+
+services:
+  mariadb:
+    image: mariadb:10.3
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+    volumes:
+      - mariadb-vol:/var/lib/mysql
+    ports:
+      - "3306:3306"
+
+  redis-cache:
+    image: redis:latest
+
+  redis-queue:
+    image: redis:latest
+
+  redis-socketio:
+    image: redis:latest
+
+  site-creator:
+    image: frappe/frappe-worker:version-13
+    command: new
+    environment:
+      - SITE_NAME=mysite
+      - DB_ROOT_USER=root
+      - MYSQL_ROOT_PASSWORD=root
+      - ADMIN_PASSWORD=admin
+      - INSTALL_APPS=erpnext,gameplan,lms,hrms,crm,books,drive
+    depends_on:
+      - mariadb
+
+  frappe:
+    image: frappe/frappe-worker:version-13
+    ports:
+      - "8000:8000"
+    depends_on:
+      - mariadb
+      - redis-cache
+      - redis-queue
+      - redis-socketio
+    volumes:
+      - sites-vol:/home/frappe/frappe-bench/sites
+      - assets-vol:/home/frappe/frappe-bench/sites/assets
+
+volumes:
+  mariadb-vol:
+  sites-vol:
+  assets-vol:
+
